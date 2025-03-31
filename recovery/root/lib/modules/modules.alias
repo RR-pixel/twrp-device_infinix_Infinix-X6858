@@ -157,6 +157,8 @@ alias of:N*T*Cmediatek,gpueb gpueb
 alias of:N*T*Cmediatek,gpuebC* gpueb
 alias of:N*T*Cmediatek,mtk_ctd mtk_chg_type_det
 alias of:N*T*Cmediatek,mtk_ctdC* mtk_chg_type_det
+alias of:N*T*Crm69220,fhdp,dsi,vdo,dsc,csot,csot,144hz,x6858 rm69220_fhdp_dsi_vdo_dsc_csot_csot_144hz_x6858
+alias of:N*T*Crm69220,fhdp,dsi,vdo,dsc,csot,csot,144hz,x6858C* rm69220_fhdp_dsi_vdo_dsc_csot_csot_144hz_x6858
 alias of:N*T*Csouthchip,sc8950 sc8950
 alias of:N*T*Csouthchip,sc8950C* sc8950
 alias of:N*T*Ctran,wireless_manager tran_wireless_manager
@@ -281,7 +283,6 @@ alias of:N*T*Cmediatek,scpsys-disable-unused mtk_pm_domain_disable_unused
 alias of:N*T*Cmediatek,scpsys-disable-unusedC* mtk_pm_domain_disable_unused
 alias of:N*T*Cmediatek,pbm mtk_pbm
 alias of:N*T*Cmediatek,pbmC* mtk_pbm
-alias i2c:haptic_hv richtap_haptic_hv
 alias of:N*T*Cmediatek,disp-leds leds_mtk_disp
 alias of:N*T*Cmediatek,disp-ledsC* leds_mtk_disp
 alias of:N*T*Cmediatek,disp-conn-leds leds_mtk_disp
@@ -353,8 +354,6 @@ alias of:N*T*Cmediatek,mt6765-cqdma mtk_cqdma
 alias of:N*T*Cmediatek,mt6765-cqdmaC* mtk_cqdma
 alias of:N*T*Cmediatek,charger,pe mtk_pep
 alias of:N*T*Cmediatek,charger,peC* mtk_pep
-alias of:N*T*Cst,st21nfc st21nfc
-alias of:N*T*Cst,st21nfcC* st21nfc
 alias of:N*T*Cmediatek,mt6375 mt6375
 alias of:N*T*Cmediatek,mt6375C* mt6375
 alias of:N*T*Cmediatek,mt6983-disp-tdshp mediatek_drm
@@ -828,6 +827,7 @@ alias of:N*T*Cmediatek,gpufreq_wrapperC* mtk_gpufreq_wrapper
 alias of:N*T*Cmediatek,pd_adapter mtk_pd_adapter
 alias of:N*T*Cmediatek,pd_adapterC* mtk_pd_adapter
 alias net-pf-16-proto-16-family-nl80211 cfg80211
+alias i2c:aw210xx_led leds_aw210xx_mod
 alias of:N*T*Ctran,chg_aging tran_battery_aging
 alias of:N*T*Ctran,chg_agingC* tran_battery_aging
 alias of:N*T*Cmediatek,charger,pe4 mtk_pep40
@@ -849,8 +849,6 @@ alias of:N*T*Cmediatek,mt6739-usb20 musb_hdrc
 alias of:N*T*Cmediatek,mt6739-usb20C* musb_hdrc
 alias of:N*T*Cmediatek,mt6375-auxadc mt6375_auxadc
 alias of:N*T*Cmediatek,mt6375-auxadcC* mt6375_auxadc
-alias of:N*T*Ctranssion,_adapter_control tran_adapter_control
-alias of:N*T*Ctranssion,_adapter_controlC* tran_adapter_control
 alias of:N*T*Cmediatek,low_battery_throttling mtk_low_battery_throttling
 alias of:N*T*Cmediatek,low_battery_throttlingC* mtk_low_battery_throttling
 alias of:N*T*Cmediatek,mt6577-uart 8250_mtk

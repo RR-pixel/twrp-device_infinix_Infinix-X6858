@@ -61,6 +61,7 @@ mtk-mml.ko
 mtk_panel_ext.ko
 tran_drm_panel_i2c.ko
 nt37703a_fhdp_dsi_vdo_dsc_tm_tm_144hz_x6855.ko
+rm69220_fhdp_dsi_vdo_dsc_csot_csot_144hz_x6858.ko
 mediatek-drm.ko
 aee_rs.ko
 mmprofile.ko
@@ -93,7 +94,7 @@ blocktag.ko
 pidmap.ko
 mtk-pmic-keys.ko
 mtk-kpd.ko
-richtap_haptic_hv.ko
+regulator-vibrator.ko
 i2c-mt65xx.ko
 rtc-mt6397.ko
 mt6789_dcm.ko
@@ -140,9 +141,9 @@ mtk_ambient_temp_det.ko
 port_burning.ko
 usb_switch_evo.ko
 tran_usb_ctrl.ko
-tran_adapter_control.ko
 tran_water_detect.ko
 hl7139a.ko
+sc8548_charger.ko
 mtk_tran_tc30.ko
 mtk_tran_hvdcp20.ko
 mtk_pep50.ko
@@ -156,6 +157,7 @@ pwm-mtk-disp.ko
 leds-mtk.ko
 leds-mtk-disp.ko
 leds-mtk-pwm.ko
+leds_aw210xx_mod.ko
 rt4831a_drv.ko
 extcon-mtk-usb.ko
 tcpci_late_sync.ko
@@ -207,10 +209,9 @@ tran_perf_util.ko
 tran_expand_key.ko
 lzo.ko
 lzo-rle.ko
-st21nfc.ko
+nfc_i2c.ko
 tnek.ko
 thd.ko
 tran-proc-bootdevice-mod.ko
 tran_auto_test.ko
 sdcard_debug.ko
-nfc_i2c.ko

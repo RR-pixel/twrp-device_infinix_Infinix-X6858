@@ -1,4 +1,4 @@
-## Infinix NOTE 50 Pro 4G (_X6855_)
+## Infinix NOTE 50 Pro 4G (_X6858_)
 ## TWRP / OrangeFox device tree
 
 ## Device specifications
@@ -39,7 +39,7 @@ Works:
 _Lunch_ command :
 
 ```
-lunch twrp_X6855-eng && mka adbd vendorbootimage
+lunch twrp_X6858-eng && mka adbd vendorbootimage
 ```
 
 ### Copyright
