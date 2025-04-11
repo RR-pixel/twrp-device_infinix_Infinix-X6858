@@ -215,3 +215,4 @@ thd.ko
 tran-proc-bootdevice-mod.ko
 tran_auto_test.ko
 sdcard_debug.ko
+trangpio.ko
