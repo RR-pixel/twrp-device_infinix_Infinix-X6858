@@ -38,10 +38,10 @@ jobs:
 
     - name: Initialize OrangeFox manifest
       run: |
-        mkdir OrangeFox
+        mkdir -p OrangeFox
         cd OrangeFox
         repo init \
-          -u https://gitlab.com/OrangeFox/sync.git \
+          -u https://gitlab.com/OrangeFox/Manifest.git \
           -b fox_12.1 \
           --depth=1
 
