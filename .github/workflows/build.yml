@@ -76,6 +76,10 @@ jobs:
           -b fox_12.1-tranos15 \
           device/transsion/mt6789-common
 
+    - name: Fix duplicate gflags
+      run: |
+        rm -rf OrangeFox/external/gflags
+
     - name: Build OrangeFox
       run: |
         cd OrangeFox
