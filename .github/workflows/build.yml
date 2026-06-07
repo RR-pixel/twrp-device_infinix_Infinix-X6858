@@ -84,7 +84,7 @@ jobs:
       run: |
         cd OrangeFox
         source build/envsetup.sh
-        lunch twrp_Infinix-X6858-eng
+        lunch twrp_X6858-eng
         mka vendorbootimage
 
     - name: Upload result
