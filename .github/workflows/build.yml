@@ -27,7 +27,8 @@ jobs:
     - name: Setup repo tool
       run: |
         mkdir -p ~/.bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+        curl https://storage.googleapis.com/git-repo-downloads/repo \
+          > ~/.bin/repo
         chmod a+x ~/.bin/repo
         echo "$HOME/.bin" >> $GITHUB_PATH
 
@@ -35,38 +36,38 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
+        git config --global \
+          url."https://gitlab.com/".insteadOf "git@gitlab.com:"
 
-    - name: Initialize OrangeFox manifest
+    - name: Clone OrangeFox sync script
       run: |
-        mkdir -p OrangeFox
-        cd OrangeFox
-        repo init \
-          -u https://gitlab.com/OrangeFox/Manifest.git \
-          -b fox_12.1 \
-          --depth=1
+        git clone https://gitlab.com/OrangeFox/sync.git \
+          --depth=1 ofox_sync
 
-    - name: Sync source
+    - name: Sync OrangeFox source
       run: |
-        cd OrangeFox
-        repo sync -c -j$(nproc --all) \
-          --force-sync \
-          --no-clone-bundle \
-          --no-tags
+        mkdir -p $GITHUB_WORKSPACE/OrangeFox
+        cd ofox_sync
+        ./orangefox_sync.sh \
+          --branch fox_12.1 \
+          --path $GITHUB_WORKSPACE/OrangeFox
 
     - name: Clone device trees
       run: |
-        cd OrangeFox
-        git clone https://github.com/${{ github.repository_owner }}/twrp-device_infinix_Infinix-X6858 \
+        cd $GITHUB_WORKSPACE/OrangeFox
+        git clone \
+          https://github.com/${{ github.repository_owner }}/twrp-device_infinix_Infinix-X6858 \
           -b fox_12.1-tos15 \
           device/infinix/Infinix-X6858
 
-        git clone https://github.com/${{ github.repository_owner }}/twrp-device_transsion_mt6789-common \
+        git clone \
+          https://github.com/${{ github.repository_owner }}/twrp-device_transsion_mt6789-common \
           -b fox_12.1-tranos15 \
           device/transsion/mt6789-common
 
     - name: Build OrangeFox
       run: |
-        cd OrangeFox
+        cd $GITHUB_WORKSPACE/OrangeFox
         source build/envsetup.sh
         lunch twrp_Infinix-X6858-eng
         mka vendorbootimage
@@ -76,5 +77,5 @@ jobs:
       with:
         name: OrangeFox-X6858-XOS16
         path: |
-          OrangeFox/out/target/product/Infinix-X6858/vendor_boot.img
+          ${{ github.workspace }}/OrangeFox/out/target/product/Infinix-X6858/vendor_boot.img
         if-no-files-found: warn
