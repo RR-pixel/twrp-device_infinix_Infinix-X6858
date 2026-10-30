@@ -23,11 +23,11 @@
 FDEVICE="X6871"
 
 fetch_mt6895_common_repo() {
-	local URL=https://github.com/transsion-mt6895/twrp-device_transsion_mt6895-common.git
+	local URL=https://github.com/ramabondanp/twrp-device_transsion_mt6895-common.git
 	local common=device/transsion/mt6895-common
 	if [ ! -d $common ]; then
 		echo "Cloning $URL ... to $common"
-		git clone $URL -b fox_12.1-tos15 $common
+		git clone $URL -b twrp-16.0-tos16 $common
 	else
 		echo "Device common repository: \"$common\" found ..."
 	fi
