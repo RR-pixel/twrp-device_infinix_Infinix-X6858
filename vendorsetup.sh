@@ -19,32 +19,54 @@
 # 	Please maintain this if you use this script or any part of it
 #
 
-#set -o xtrace
-FDEVICE="X6871"
-
 fetch_mt6895_common_repo() {
 	local URL=https://github.com/ramabondanp/twrp-device_transsion_mt6895-common.git
-	local common=device/transsion/mt6895-common
-	if [ ! -d $common ]; then
+	local common="$1/device/transsion/mt6895-common"
+	if [ ! -d "$common" ]; then
 		echo "Cloning $URL ... to $common"
-		git clone $URL -b twrp-16.0-tos16 $common
+		git clone "$URL" -b twrp-16.0-tos16 "$common" || return 1
 	else
 		echo "Device common repository: \"$common\" found ..."
 	fi
+	if [ ! -e "$common/.git" ]; then
+		echo "ERROR: $common is not a Git checkout." >&2
+		return 1
+	fi
+	local branch
+	branch=$(git -C "$common" branch --show-current) || return 1
+	if [ "$branch" != twrp-16.0-tos16 ]; then
+		echo "ERROR: Common tree must be on twrp-16.0-tos16 (found: ${branch:-detached HEAD})." >&2
+		return 1
+	fi
 }
 
-FOX_BUILD_DEVICE="$FDEVICE"
+apply_X6871_patch() {
+	local tree="$1"
+	local patch="$2"
+	if git -C "$tree" apply --reverse --check "$patch" >/dev/null 2>&1; then
+		echo "Already applied: $(basename "$patch")"
+	elif git -C "$tree" apply --check "$patch"; then
+		git -C "$tree" apply "$patch" || return 1
+		echo "Applied: $(basename "$patch")"
+	else
+		echo "ERROR: Cannot apply $patch to $tree; resolve the conflict first." >&2
+		return 1
+	fi
+}
 
-if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
+setup_X6871() {
+	local root
+	root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd) || return 1
+
 	# Clone to fix build on minimal manifest
-	if [ ! -d external/gflags ]; then
-		git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 external/gflags
+	if [ ! -d "$root/external/gflags" ]; then
+		git clone https://android.googlesource.com/platform/external/gflags/ -b android-12.1.0_r4 "$root/external/gflags" || return 1
 	else
 		echo "Dependency: \"external/gflags\" found ..."
 	fi
 
 	# mt6895-common
-	fetch_mt6895_common_repo
+	fetch_mt6895_common_repo "$root" || return 1
 
 	export FOX_VIRTUAL_AB_DEVICE=1
 	export FOX_VANILLA_BUILD=1
@@ -66,18 +88,13 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
     export FOX_VARIANT="15.1.2"
 
 	# Patches
-	RET=0
-	cd bootable/recovery
-	git apply ../../device/infinix/Infinix-X6871/patches/0001-Change-haptics-activation-file-path.patch > /dev/null 2>&1 || RET=$?
-	cd ../../
-	cd build/make
-	git apply ../../device/transsion/mt6895-common/patches/0001-Add-zstd-ramdisk-compression.patch > /dev/null 2>&1 || RET=$?
-	cd ../../
-	if [ $RET -ne 0 ];then
-		echo "ERROR: Patch is not applied! Maybe it's already patched?"
-	else
-		echo "OK: All patched"
-	fi
-else
-    exit 1
-fi
+	apply_X6871_patch "$root/bootable/recovery" \
+		"$root/device/infinix/Infinix-X6871/patches/0001-Change-haptics-activation-file-path.patch" || return 1
+	apply_X6871_patch "$root/bootable/recovery" \
+		"$root/device/transsion/mt6895-common/patches/0002-Respect-disabled-repacking.patch" || return 1
+	apply_X6871_patch "$root/build/make" \
+		"$root/device/transsion/mt6895-common/patches/0001-Add-zstd-ramdisk-compression.patch" || return 1
+	echo "OK: All patched"
+}
+
+setup_X6871

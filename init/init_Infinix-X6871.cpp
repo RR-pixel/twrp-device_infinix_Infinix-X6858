@@ -21,11 +21,11 @@ void property_override(string prop, string value)
 
 void vendor_load_properties()
 {
-    string prop_partitions[] = {"", "vendor.", "odm."};
+    string prop_partitions[] = {"", "system.", "vendor.", "odm."};
     for (const string &prop : prop_partitions)
     {
         property_override(string("ro.product.") + prop + string("name"), "X6871-OP");
         property_override(string("ro.product.") + prop + string("marketname"), "Infinix GT 20 Pro");
-        property_override(string("ro.product.system.") + prop + string("device"), "Infinix GT 20 Pro");
+        property_override(string("ro.product.") + prop + string("device"), "Infinix-X6871");
     }
 }
