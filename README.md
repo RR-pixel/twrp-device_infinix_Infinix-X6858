@@ -41,7 +41,7 @@ git clone --branch twrp-16.0-tos16 \
 
 The device setup script fetches the
 [MT6895 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6895-common/tree/twrp-16.0-tos16)
-if missing and applies the required zstd and haptics patches.
+if missing and applies the required zstd, haptics, and repacking-safety patches.
 
 Build the recovery image:
 
@@ -66,6 +66,8 @@ When replacing prebuilt binaries or removing packages, run
   recovery to coexist while retaining the stock boot kernel.
 - An empty RECOVERY fragment is intentional and required for the
   bootloader to enter recovery mode.
+- In-recovery ramdisk repacking is disabled because it does not support
+  this layout.
 - The device uses virtual A/B updates and dynamic partitions.
 - Slot switching uses the stock MTK AIDL boot HAL and is verified working.
 - Battery reporting uses an AIDL health HAL.

@@ -68,25 +68,6 @@ setup_X6871() {
 	# mt6895-common
 	fetch_mt6895_common_repo "$root" || return 1
 
-	export FOX_VIRTUAL_AB_DEVICE=1
-	export FOX_VANILLA_BUILD=1
-	export FOX_ENABLE_APP_MANAGER=1
-	export FOX_RECOVERY_SYSTEM_PARTITION="/dev/block/mapper/system"
-	export FOX_RECOVERY_VENDOR_PARTITION="/dev/block/mapper/vendor"
-	export FOX_USE_BASH_SHELL=1
-	export FOX_ASH_IS_BASH=1
-	export FOX_USE_TAR_BINARY=1
-	export FOX_USE_LZ4_BINARY=1
-	export FOX_USE_SED_BINARY=1
-	export FOX_USE_XZ_UTILS=1
-	export FOX_USE_ZSTD_BINARY=1
-	export FOX_USE_NANO_EDITOR=1
-	export FOX_DELETE_AROMAFM=1
-	export FOX_MAINTAINER_PATCH_VERSION=$(date +"%Y%m%d")
-	export FOX_USE_BASH_SHELL=1
-	export FOX_USE_NANO_EDITOR=1
-    export FOX_VARIANT="15.1.2"
-
 	# Patches
 	apply_X6871_patch "$root/bootable/recovery" \
 		"$root/device/infinix/Infinix-X6871/patches/0001-Change-haptics-activation-file-path.patch" || return 1

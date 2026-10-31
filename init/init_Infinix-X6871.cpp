@@ -1,12 +1,8 @@
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <android-base/properties.h>
+#include <string>
 
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
 
-using android::base::GetProperty;
 using std::string;
 
 void property_override(string prop, string value)

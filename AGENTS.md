@@ -80,6 +80,7 @@ the script does not switch or update an existing checkout.
 | Patch (relative to its repository) | Owner | Target |
 |---|---|---|
 | `patches/0001-Add-zstd-ramdisk-compression.patch` | Common | `build/make` |
+| `patches/0002-Respect-disabled-repacking.patch` | Common | `bootable/recovery` |
 | `patches/0001-Change-haptics-activation-file-path.patch` | X6871 | `bootable/recovery` |
 
 A patch error is not automatically harmless. Check forward application
@@ -102,6 +103,9 @@ applied copies upstream or discard unrelated edits.
   Preserve it; do not move the recovery payload into that fragment.
 - Android and TWRP share this image. Retain the stock `boot.img` kernel;
   this tree builds `vendor_boot`, not a replacement kernel.
+- Bundled repacking is disabled: its recovery-fragment assumptions and
+  compression support do not match this layout. Build and flash complete
+  images instead; do not re-enable repacking without layout-aware support.
 - Preserve configured bootconfig, cmdline, DTB, ramdisk table, partition
   size, and AVB metadata when changing or repacking the image. Read exact
   values from `BoardConfigCommon.mk`, not from old build artifacts.
@@ -125,9 +129,12 @@ applied copies upstream or discard unrelated edits.
 
 - Preserve the matching Trustonic stack: `mcDriverDaemon`/`mobicore`,
   TEE service, gatekeeper, keymint, supporting libraries, and mcRegistry.
-- `init.tee.rc` starts mobicore early; the
-  `ro.vendor.trustonic.ready=true` trigger in `init.recovery.mt6895.rc`
-  starts TEE, gatekeeper, and keymint services.
+- `init.tee.rc` starts mobicore only after `twrp.storage.ready=1`.
+  `init.recovery.mt6895.rc` requires both storage readiness and
+  `ro.vendor.trustonic.ready=true` before starting TEE, gatekeeper, and
+  keymint. Keep these services disabled for class-based startup: early
+  startup can attach them to temporary `/vendor` mounts, causing unmount
+  cleanup to kill them and leave keystore2 with a dead KeyMint connection.
 - FBE also depends on keystore2, Keymaster 4.1, secureclock/sharedsecret,
   the Trustonic properties in `system.prop`, and matching fstab crypto
   settings. Preserve fscrypt policy v2 and metadata key-directory setup.
