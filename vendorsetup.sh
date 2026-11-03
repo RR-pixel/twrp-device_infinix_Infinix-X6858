@@ -72,6 +72,8 @@ setup_X6871() {
 	apply_X6871_patch "$root/bootable/recovery" \
 		"$root/device/infinix/Infinix-X6871/patches/0001-Change-haptics-activation-file-path.patch" || return 1
 	apply_X6871_patch "$root/bootable/recovery" \
+		"$root/device/transsion/mt6895-common/patches/0003-Refresh-removable-partitions-after-uevent.patch" || return 1
+	apply_X6871_patch "$root/bootable/recovery" \
 		"$root/device/transsion/mt6895-common/patches/0002-Respect-disabled-repacking.patch" || return 1
 	apply_X6871_patch "$root/build/make" \
 		"$root/device/transsion/mt6895-common/patches/0001-Add-zstd-ramdisk-compression.patch" || return 1
