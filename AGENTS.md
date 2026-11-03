@@ -23,8 +23,11 @@ Read before working on this device or its common tree.
    repositories' `patches/`, applied by `vendorsetup.sh`. Do not leave
    unrecorded source edits as the implementation of a fix.
 3. **Use workspace-local `tmp/`, never `/tmp`,** for scratch work.
-4. **Every commit subject must contain `twrp-16.0`.** Commit or push only
-   when authorized; documentation changes do not imply that permission.
+4. **Commit subjects use a double scope:**
+   `<project>: twrp-16.0: <description>`. Keep the description lowercase
+   except for acronyms and proper nouns. Example:
+   `X6871: twrp-16.0: document USB OTG hotplug discovery`. Commit or push
+   only when authorized; documentation changes do not imply that permission.
 5. **Do not commit or push functional fixes before device confirmation.**
    A successful build alone is not hardware validation.
 6. **Prefer fewer patches and AIDL over HIDL.** Avoid cleanup patches that
