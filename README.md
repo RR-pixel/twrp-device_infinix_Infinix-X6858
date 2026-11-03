@@ -1,9 +1,9 @@
 # TWRP for Infinix GT 20 Pro (X6871)
 
-Unofficial TWRP 16.0 device tree for the Infinix GT 20 Pro.
+Unofficial TWRP 16.0 recovery for the Infinix GT 20 Pro.
 
 > [!WARNING]
-> **Android 16 firmware with kernel 6.12 only.**
+> **Requires Android 16 firmware and a compatible 6.12 kernel.**
 > Android 15 and older firmware are not supported.
 
 ## Device information
@@ -19,96 +19,33 @@ Unofficial TWRP 16.0 device tree for the Infinix GT 20 Pro.
 
 ## Working features
 
-- Touchscreen
-- FBE decryption through Trustonic TEE
-- Battery and charging information
+- Touchscreen and vibration
+- Data decryption (FBE)
+- Battery and charging status
 - ADB
-- USB OTG
-- A/B slot switching using the stock MTK AIDL boot HAL
+- USB OTG, including drives with multiple partitions
+- Fastbootd and A/B slot switching
 - Normal Android boot alongside TWRP
-
-## Building
-
-Start with a configured TWRP 16.0 source tree on Linux.
-
-Clone this repository from the source-tree root:
-
-```bash
-git clone --branch twrp-16.0-tos16 \
-  https://github.com/ramabondanp/twrp-device_infinix_Infinix-X6871.git \
-  device/infinix/Infinix-X6871
-```
-
-The device setup script fetches the
-[MT6895 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6895-common/tree/twrp-16.0-tos16)
-if missing and applies the required zstd, haptics, and repacking-safety patches.
-
-Build the recovery image:
-
-```bash
-source build/envsetup.sh
-lunch twrp_X6871
-m vendorbootimage -j"$(nproc)"
-```
-
-Output:
-
-```text
-out/target/product/Infinix-X6871/vendor_boot.img
-```
-
-When replacing prebuilt binaries or removing packages, run
-`m installclean` before rebuilding to avoid stale ramdisk files.
-
-## Technical notes
-
-- TWRP lives in the `vendor_boot` PLATFORM ramdisk, allowing Android and
-  recovery to coexist while retaining the stock boot kernel.
-- An empty RECOVERY fragment is intentional and required for the
-  bootloader to enter recovery mode.
-- In-recovery ramdisk repacking is disabled because it does not support
-  this layout.
-- The device uses virtual A/B updates and dynamic partitions.
-- Slot switching uses the stock MTK AIDL boot HAL and is verified working.
-- Battery reporting uses an AIDL health HAL.
-- FBE decryption uses the Trustonic TEE stack.
-- Recovery services run in the permissive SELinux `recovery` domain.
 
 ## Reporting issues
 
-Please include:
+Please include your firmware and kernel versions, the recovery build you
+used, and steps to reproduce the problem.
 
-- Your complete Android 16 firmware version
-- The recovery build used
-- Steps to reproduce the problem
-- What you expected and what happened
-- Recovery logs, where available
+Use **Advanced → Export logs** to save recovery logs. Review them for
+personal information before sharing.
 
-If ADB is available in recovery, capture logcat:
+## Development
 
-```bash
-adb logcat -b all -d > recovery-log.txt
-```
+Build instructions and development notes are in [AGENTS.md](AGENTS.md),
+which is written primarily for AI coding agents.
 
-Also attach TWRP's recovery log using **Advanced → Copy Log**, if
-accessible.
+Shared device support is maintained in the
+[MT6895 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6895-common/tree/twrp-16.0-tos16).
 
-Review logs for personal information before sharing them.
-
-## Credits and links
+## Credits
 
 - [Team Win Recovery Project](https://twrp.me)
 - [OrangeFox Recovery Project](https://orangefox.download)
 - MediaTek and Transsion for stock firmware components
 - Maintainer: [rama982 / ramabondanp](https://github.com/ramabondanp)
-
-Repositories:
-
-- [X6871 device tree](https://github.com/ramabondanp/twrp-device_infinix_Infinix-X6871)
-- [MT6895 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6895-common)
-
-## Disclaimer
-
-This is an unofficial project. Using custom recovery carries a risk of
-data loss or an unbootable device. Back up important data and proceed at
-your own risk.
