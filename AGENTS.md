@@ -10,19 +10,21 @@ Read before working on this device or its common tree.
 - The build server is disposable. Do not assume `out/`, `tmp/`, logs,
   stock dumps, credentials, or a particular workspace path will survive.
 - Keep durable decisions in version control, not only in chat or scratch
-  files. Do not add build hashes, dates, download links, test readings,
-  or host-specific instructions here.
-- Keep this file in the X6871 repository only. `README.md` is for humans;
-  tracked configuration and source files define exact implementation details.
+  files. Do not add build hashes, dates, download links, or test readings
+  here.
+- Keep this file in the X6871 repository only. Keep `README.md` short and
+  user-facing; put build and implementation guidance here.
 
 ## Constraints
 
-1. **Android 16 firmware / kernel 6.12 only.** Android 15 and older firmware
-   are unsupported. Preserve both normal Android boot and recovery boot.
+1. **Android 16 firmware with a 6.12 kernel only.** Android 15 and older
+   firmware are unsupported. Preserve both normal Android boot and recovery
+   boot.
 2. **Keep TWRP/build-system source changes as patches** under the device
    repositories' `patches/`, applied by `vendorsetup.sh`. Do not leave
    unrecorded source edits as the implementation of a fix.
-3. **Use workspace-local `tmp/`, never `/tmp`,** for scratch work.
+3. **On ServerHive, use workspace-local `tmp/`, never `/tmp`,** for scratch
+   work; the host does not allow writes to `/tmp`.
 4. **Commit subjects use a double scope:**
    `<project>: twrp-16.0: <description>`. Keep the description lowercase
    except for acronyms and proper nouns. Example:
@@ -39,7 +41,8 @@ Read before working on this device or its common tree.
 
 ## Repositories and ownership
 
-Both repositories use `twrp-16.0-tos16`. Keep `fox_12.1-tos15` as a backup.
+Both repositories use `twrp-16.0-tos16`. Keep the `fox_12.1-tos15` branch
+as a backup.
 Paths below are relative to the Android source-tree root, which contains
 multiple Git repositories rather than one workspace-wide repository.
 
@@ -70,12 +73,31 @@ Run from the source-tree root:
 ```bash
 source build/envsetup.sh
 lunch twrp_X6871
-m vendorbootimage -j"$(nproc)"
+m vendorbootimage
 ```
 
 Output: `out/target/product/Infinix-X6871/vendor_boot.img`.
 Use `m installclean` before rebuilding after replacing prebuilts, removing
 packages, or switching HAL implementations to avoid stale packaged files.
+
+### ServerHive
+
+Build on the ServerHive host (`ssh waffle`) in a login shell inside a
+persistent tmux or byobu session. The login shell provides the RBE
+environment. Do not override `CUSTOM_NINJA_BIN`, `USE_RBE`, or `NINJA_ARGS`,
+and do not pass `-j`; RBE controls parallelism.
+
+```bash
+ssh waffle
+tmux new-session -s twrp-build
+bash -l
+cd ~/twrp-16.0
+source build/envsetup.sh
+lunch twrp_X6871
+m vendorbootimage
+```
+
+Use `~/twrp-16.0/tmp/` for scratch files. Do not write to `/tmp`.
 
 X6871's `vendorsetup.sh` fetches the common repository when absent and
 applies these patches. If common already exists, verify its branch;
@@ -106,8 +128,8 @@ applied copies upstream or discard unrelated edits.
   named `emptyrecovery` from common's `prebuilt/empty_recovery.cpio.zst`.
 - The empty fragment is required for the bootloader to enter recovery.
   Preserve it; do not move the recovery payload into that fragment.
-- Android and TWRP share this image. Retain the stock `boot.img` kernel;
-  this tree builds `vendor_boot`, not a replacement kernel.
+- Android and TWRP share this image. Retain the existing compatible
+  `boot.img` kernel; this tree builds `vendor_boot`, not a replacement kernel.
 - Bundled repacking is disabled: its recovery-fragment assumptions and
   compression support do not match this layout. Build and flash complete
   images instead; do not re-enable repacking without layout-aware support.
@@ -134,8 +156,8 @@ applied copies upstream or discard unrelated edits.
 
 ### USB OTG hotplug
 
-The xHCI host exposes a plugged drive as `sdd`. Common's `recovery.fstab`
-carries a v2 sysfs entry for it:
+The xHCI host typically exposes a plugged drive as `sdd`. Common's
+`recovery.fstab` carries a v2 sysfs entry for it:
 
 ```
 /devices/platform/soc/11201000.usb0/11200000.xhci*  /usbotg  auto  ...
@@ -162,7 +184,7 @@ event timing and mask the device-node race.
 
 The `/usbotg` entry is a placeholder parent, not a mountable filesystem. Real
 partitions appear as `/usbotg-1`, `/usbotg-2`, ... and are labeled `OTG 1`,
-`OTG 2`, ...; numbering follows block enumeration, so do not assume `sdd1`
+`OTG 2`, ...; numbering follows discovery order, so do not assume `sdd1`
 is `OTG 1`.
 
 ### Encryption
@@ -187,7 +209,7 @@ The haptic amplifier is an AWINIC RichTap part on i2c (`haptic_hv@5A`,
 `tran_richtap_haptic_hv.ko`), not the MTK `regulator-vibrator` LED. The
 `vibrator` LED only toggles a rail and produces no feedback on this board.
 
-Stock module behaviour: `init_module` builds a boot-mode skip mask with
+Stock module behavior: `init_module` builds a boot-mode skip mask with
 `mov w9, #0x304` and does not call `i2c_add_driver` for modes 2, 8 and 9.
 Recovery reports mode 2, so the module loads but never binds; `haptic_hv@5A`
 has no driver and `/sys/class/leds/vibrator_single` never appears. TWRP then
@@ -249,9 +271,9 @@ that trigger: without it, the first several seconds of touches are silent.
 ## Verified baseline and validation
 
 Established capabilities: recovery boot, touch, FBE decryption, real
-battery reporting, USB OTG, fastbootd, AIDL boot-service registration,
-actual A/B slot switching, RichTap haptics with the patched module, and
-normal Android boot with the same image.
+battery reporting, USB OTG hotplug, fastbootd, AIDL boot-service
+registration, actual A/B slot switching, RichTap haptics with the patched
+module, and normal Android boot with the same image.
 This is a baseline, not proof that a new build preserves those features.
 
 Before calling a functional change ready:
