@@ -251,6 +251,30 @@ writes `1` to `/sys/class/leds/vibrator_single/ram_update` when
 `sys.boot_completed` is set, loading the firmware in about 200 ms. Keep
 that trigger: without it, the first several seconds of touches are silent.
 
+### Touchscreen / adaptive-ts
+
+`adaptive-ts.ko` is the Transsion touch panel driver. Its
+`mtk_get_boot_mode()` returns 2 for boot modes 1/4/6 and 1 for modes
+2/8/9; recovery reports mode 2, so the driver takes its recovery path and
+never probes the panel. TWRP then boots with a working display but no
+touch. Both returns are `mov w0` immediates in one contiguous block.
+
+Every packaged copy of the module must be patched to return 0 on both
+paths:
+
+```bash
+python3 tools/patch_adaptive_ts_ko.py \
+  recovery/root/lib/modules/adaptive-ts.ko
+```
+
+The script matches the whole return block, requires a unique signature,
+and is idempotent (`--check` reports state without writing). Re-run it
+**whenever the module is replaced from a new stock dump**: the prebuilt is
+a binary blob, and a plain copy silently reintroduces the bug. If the
+signature is not found, disassemble `mtk_get_boot_mode` with
+`llvm-objdump` and re-derive the returns rather than patching a raw
+offset.
+
 ## Rejected approaches
 
 - **Single-slot fallback:** virtual A/B does not mean a single boot slot.
