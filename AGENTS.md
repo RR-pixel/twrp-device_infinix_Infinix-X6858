@@ -52,7 +52,8 @@ Keep the DTB and modules compatible with the target stock firmware/kernel.
 Common owns shared boot layout, brightness and crypto configuration
 (`BoardConfigCommon.mk`), packages (`common.mk`), and recovery root files:
 
-- `init.recovery.mt6895.rc` and `init.tee.rc`: boot HAL and TEE startup.
+- `init.recovery.mt6895.rc` and `init.tee.rc`: boot HAL and TEE startup,
+  plus the RichTap firmware preload.
 - `first_stage_ramdisk/fstab.mt6895`: non-AVB first-stage fstab, including
   `tr_system`; distinct from `system/etc/recovery.fstab` used by TWRP.
 - `system/etc/twrp.flags`: partition flags and USB OTG device preference.
@@ -180,6 +181,14 @@ The TWRP side is `patches/0001-Change-haptics-activation-file-path.patch`
 (target `bootable/recovery`). It probes `vibrator_single` duration/activate,
 then the generic `vibrator` LED pair, then `timed_output`, then a
 `vibrator/brightness` pulse, then evdev force feedback.
+
+The driver also defers its `haptic_ram.bin` load: `ram_work_init()` queues
+the work for 2000 jiffies (8 s at HZ=250) after probe. TWRP is interactive
+before then, and `activate_store` rejects early writes with
+`ram init failed, not allow to play!`. Common's `init.recovery.mt6895.rc`
+writes `1` to `/sys/class/leds/vibrator_single/ram_update` when
+`sys.boot_completed` is set, loading the firmware in about 200 ms. Keep
+that trigger: without it, the first several seconds of touches are silent.
 
 ## Rejected approaches
 
