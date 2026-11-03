@@ -56,7 +56,7 @@ Common owns shared boot layout, brightness and crypto configuration
   plus the RichTap firmware preload.
 - `first_stage_ramdisk/fstab.mt6895`: non-AVB first-stage fstab, including
   `tr_system`; distinct from `system/etc/recovery.fstab` used by TWRP.
-- `system/etc/twrp.flags`: partition flags and USB OTG device preference.
+- `system/etc/twrp.flags`: partition flags and removable-storage settings.
 - `system/etc/init/` and VINTF manifests: recovery service declarations.
 - Stock boot HAL and Trustonic binaries, libraries, and registry files.
 
@@ -112,7 +112,9 @@ applied copies upstream or discard unrelated edits.
   values from `BoardConfigCommon.mk`, not from old build artifacts.
 - The device is virtual A/B with dynamic partitions. `boot`, `vendor_boot`,
   and `dtbo` are slotted; logical system partitions live in `super`.
-- USB OTG must prefer `/dev/block/sdd1`, then `/dev/block/sdd` as fallback.
+- USB OTG is discovered through the v2 xHCI sysfs entry in common's
+  `recovery.fstab`; do not pin it to a static `/dev/block/sddN`. The
+  `/usbotg` parent is a placeholder; real partitions are `/usbotg-N`.
 
 ### Boot and health HALs
 
@@ -125,6 +127,29 @@ applied copies upstream or discard unrelated edits.
 - Use `android.hardware.health-service.example_recovery` from `common.mk`.
   Its device-tree rc overlay runs as root/group root in the `recovery`
   domain so it can report real battery information.
+
+### USB OTG hotplug
+
+The xHCI host exposes a plugged drive as `sdd`. Common's `recovery.fstab`
+carries a v2 sysfs entry for it:
+
+```
+/devices/platform/soc/11201000.usb0/11200000.xhci*  /usbotg  auto  ...
+```
+
+Keep the sysfs path. A static `/dev/block/sddN` entry is evaluated only when
+the fstab is parsed and is not refreshed when the drive is plugged in later.
+
+TWRP can receive the disk-add event before the partition nodes exist, and a
+partition event that arrives first has no block device to resolve. Keep
+common's `patches/0003-Refresh-removable-partitions-after-uevent.patch`
+applied by `vendorsetup.sh`; it reconciles removable sysfs parents after each
+uevent burst and creates or removes the child partitions.
+
+The `/usbotg` entry is a placeholder parent, not a mountable filesystem. Real
+partitions appear as `/usbotg-1`, `/usbotg-2`, ... and are labeled `OTG 1`,
+`OTG 2`, ...; numbering follows block enumeration, so do not assume `sdd1`
+is `OTG 1`.
 
 ### Encryption
 
