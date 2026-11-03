@@ -141,6 +141,46 @@ applied copies upstream or discard unrelated edits.
 - Diagnose failures across the startup chain and matching firmware
   components; do not treat a filesystem flag alone as the whole fix.
 
+### Haptics / RichTap vibrator
+
+The haptic amplifier is an AWINIC RichTap part on i2c (`haptic_hv@5A`,
+`tran_richtap_haptic_hv.ko`), not the MTK `regulator-vibrator` LED. The
+`vibrator` LED only toggles a rail and produces no feedback on this board.
+
+Stock module behaviour: `init_module` builds a boot-mode skip mask with
+`mov w9, #0x304` and does not call `i2c_add_driver` for modes 2, 8 and 9.
+Recovery reports mode 2, so the module loads but never binds; `haptic_hv@5A`
+has no driver and `/sys/class/leds/vibrator_single` never appears. TWRP then
+falls through its other haptics candidates and stays silent.
+
+Every packaged copy of the module must be patched before installation:
+
+```bash
+python3 tools/patch_haptic_ko.py \
+  recovery/root/lib/modules/tran_richtap_haptic_hv.ko
+```
+
+The script rewrites the mask immediate to `0x300`, requires a unique
+instruction signature, and is idempotent (`--check` reports state without
+writing). Re-run it **whenever the module is replaced from a new stock dump**:
+the prebuilt is a binary blob, and a plain copy silently reintroduces the
+bug. If the signature is not found, disassemble `init_module` with
+`llvm-objdump` and re-derive the mask rather than patching a raw offset.
+
+Successful registration in recovery shows:
+
+- `dmesg`: `aw_i2c_probe: probe completed successfully!`
+- `/sys/class/leds/vibrator_single/` exposing `duration` and `activate`
+- haptic feedback on button, keyboard and action input
+
+Do **not** `rmmod` this module on a running device: its cleanup path panics
+the kernel when the driver was never registered. Rebuild and flash the image.
+
+The TWRP side is `patches/0001-Change-haptics-activation-file-path.patch`
+(target `bootable/recovery`). It probes `vibrator_single` duration/activate,
+then the generic `vibrator` LED pair, then `timed_output`, then a
+`vibrator/brightness` pulse, then evdev force feedback.
+
 ## Rejected approaches
 
 - **Single-slot fallback:** virtual A/B does not mean a single boot slot.
@@ -162,7 +202,8 @@ applied copies upstream or discard unrelated edits.
 
 Established capabilities: recovery boot, touch, FBE decryption, real
 battery reporting, USB OTG, fastbootd, AIDL boot-service registration,
-actual A/B slot switching, and normal Android boot with the same image.
+actual A/B slot switching, RichTap haptics with the patched module, and
+normal Android boot with the same image.
 This is a baseline, not proof that a new build preserves those features.
 
 Before calling a functional change ready:
