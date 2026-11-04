@@ -67,6 +67,20 @@ Common owns shared boot layout, brightness and crypto configuration
 
 ## Build and patches
 
+This tree is built against the
+[TWRP-Test manifest](https://github.com/TWRP-Test/platform_manifest_twrp_aosp),
+not the official TeamWin minimal manifest. Initialize a shallow checkout
+with:
+
+```bash
+repo init --depth=1 -u https://github.com/TWRP-Test/platform_manifest_twrp_aosp.git -b twrp-16.0
+repo sync
+```
+
+The shallow clone saves space; omit `--depth=1` only when full history is
+needed. Keep this manifest; swapping in the official manifest changes TWRP
+revisions and may remove repositories this tree depends on.
+
 Run from the source-tree root:
 
 ```bash

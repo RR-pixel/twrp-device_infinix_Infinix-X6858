@@ -40,6 +40,9 @@ personal information before sharing.
 
 ## Development
 
+This tree uses the [TWRP-Test manifest](https://github.com/TWRP-Test/platform_manifest_twrp_aosp)
+(`twrp-16.0` branch), not the official TeamWin minimal manifest.
+
 Build instructions and development notes are in [AGENTS.md](AGENTS.md),
 which is written primarily for AI coding agents.
 
