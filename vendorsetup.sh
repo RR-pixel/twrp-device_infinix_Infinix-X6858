@@ -19,9 +19,9 @@
 # 	Please maintain this if you use this script or any part of it
 #
 
-fetch_mt6895_common_repo() {
-	local URL=https://github.com/ramabondanp/twrp-device_transsion_mt6895-common.git
-	local common="$1/device/transsion/mt6895-common"
+fetch_mt6789_common_repo() {
+	local URL=https://github.com/ramabondanp/twrp-device_transsion_mt6789-common.git
+	local common="$1/device/transsion/mt6789-common"
 	if [ ! -d "$common" ]; then
 		echo "Cloning $URL ... to $common"
 		git clone "$URL" -b twrp-16.0-tos16 "$common" || return 1
@@ -40,7 +40,7 @@ fetch_mt6895_common_repo() {
 	fi
 }
 
-apply_X6871_patch() {
+apply_X6886_patch() {
 	local tree="$1"
 	local patch="$2"
 	if git -C "$tree" apply --reverse --check "$patch" >/dev/null 2>&1; then
@@ -54,7 +54,7 @@ apply_X6871_patch() {
 	fi
 }
 
-setup_X6871() {
+setup_X6886() {
 	local root
 	root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd) || return 1
 
@@ -65,19 +65,19 @@ setup_X6871() {
 		echo "Dependency: \"external/gflags\" found ..."
 	fi
 
-	# mt6895-common
-	fetch_mt6895_common_repo "$root" || return 1
+	# mt6789-common
+	fetch_mt6789_common_repo "$root" || return 1
 
 	# Patches
-	apply_X6871_patch "$root/bootable/recovery" \
-		"$root/device/infinix/Infinix-X6871/patches/0001-Change-haptics-activation-file-path.patch" || return 1
-	apply_X6871_patch "$root/bootable/recovery" \
-		"$root/device/transsion/mt6895-common/patches/0003-Refresh-removable-partitions-after-uevent.patch" || return 1
-	apply_X6871_patch "$root/bootable/recovery" \
-		"$root/device/transsion/mt6895-common/patches/0002-Respect-disabled-repacking.patch" || return 1
-	apply_X6871_patch "$root/build/make" \
-		"$root/device/transsion/mt6895-common/patches/0001-Add-zstd-ramdisk-compression.patch" || return 1
+	apply_X6886_patch "$root/bootable/recovery" \
+		"$root/device/infinix/Infinix-X6886/patches/0001-Change-haptics-activation-file-path.patch" || return 1
+	apply_X6886_patch "$root/bootable/recovery" \
+		"$root/device/transsion/mt6789-common/patches/0003-Refresh-removable-partitions-after-uevent.patch" || return 1
+	apply_X6886_patch "$root/bootable/recovery" \
+		"$root/device/transsion/mt6789-common/patches/0002-Respect-disabled-repacking.patch" || return 1
+	apply_X6886_patch "$root/build/make" \
+		"$root/device/transsion/mt6789-common/patches/0001-Add-zstd-ramdisk-compression.patch" || return 1
 	echo "OK: All patched"
 }
 
-setup_X6871
+setup_X6886

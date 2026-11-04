@@ -1,6 +1,6 @@
-# TWRP for Infinix GT 20 Pro (X6871)
+# TWRP for Infinix HOT 60 Pro+ (X6886)
 
-Unofficial TWRP 16.0 recovery for the Infinix GT 20 Pro.
+Unofficial TWRP 16.0 recovery for the Infinix HOT 60 Pro+.
 
 > [!WARNING]
 > **Requires Android 16 firmware and a compatible 6.12 kernel.**
@@ -10,9 +10,10 @@ Unofficial TWRP 16.0 recovery for the Infinix GT 20 Pro.
 
 | Item | Details |
 |---|---|
-| Device | Infinix GT 20 Pro |
-| Codename | `Infinix-X6871` |
-| SoC | MediaTek Dimensity 8200 Ultimate (MT6895) |
+| Device | Infinix HOT 60 Pro+ |
+| Codename | `Infinix-X6886` |
+| SoC | MediaTek Helio G200 (MT6789) |
+| Display | AMOLED, 1080x2400 |
 | Partition layout | Virtual A/B with dynamic partitions |
 | Recovery image | `vendor_boot.img` |
 | Development branch | `twrp-16.0-tos16` |
@@ -41,7 +42,7 @@ Build instructions and development notes are in [AGENTS.md](AGENTS.md),
 which is written primarily for AI coding agents.
 
 Shared device support is maintained in the
-[MT6895 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6895-common/tree/twrp-16.0-tos16).
+[MT6789 common tree](https://github.com/ramabondanp/twrp-device_transsion_mt6789-common/tree/twrp-16.0-tos16).
 
 ## Credits
 
