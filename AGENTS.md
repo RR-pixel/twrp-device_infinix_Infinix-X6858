@@ -151,7 +151,7 @@ applied copies upstream or discard unrelated edits.
   `system/lib64/libmtk_bsg.so`, its init rc, and its VINTF declaration.
 - `init.recovery.mt6789.rc` starts `vendor.boot-default`, registering
   `android.hardware.boot.IBootControl/default`. It runs as root in the
-  `recovery` domain. Actual A/B slot switching is verified working.
+  `recovery` domain. A/B slot switching is hardware-confirmed.
 - Use `android.hardware.health-service.example_recovery` from `common.mk`.
   Its device-tree rc overlay runs as root/group root in the `recovery`
   domain so it can report real battery information.
@@ -269,11 +269,11 @@ boards load recovery with no haptic feedback.
 
 ## Verified baseline and validation
 
-Hardware-confirmed on X6886: recovery boot, vibration, USB OTG hotplug,
-touch, and FBE decryption. The previous mt6895 port also established real
-battery reporting, fastbootd, AIDL boot-service registration, actual A/B
-slot switching, RichTap haptics, and normal Android boot with the same
-image; retest those on X6886 after changes that affect them.
+Hardware-confirmed on X6886: recovery boot, touch, vibration, USB OTG
+hotplug (including multi-partition drives), FBE decryption (including
+PIN/password-protected data), battery and charging reporting, ADB and
+ADB sideload, fastbootd, A/B slot switching, and normal Android boot
+with the same image.
 
 Before calling a functional change ready:
 
