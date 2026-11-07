@@ -1,0 +1,6 @@
+# X6855 uses an AWINIC RichTap / AW8697 haptic amplifier on i2c
+# (haptic_hv@5A). The driver defers its haptic_ram.bin load for ~8 s after
+# probe; trigger the RAM firmware load as soon as boot completes so the
+# vibrator is ready before the first touch.
+on property:sys.boot_completed=1
+    write /sys/class/leds/vibrator_single/ram_update 1
