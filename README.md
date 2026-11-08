@@ -14,7 +14,7 @@ Unofficial TWRP 16.0 recovery for the Infinix NOTE 50 PRO 5G.
 | Codename | `Infinix-X6855` |
 | SoC | MediaTek Helio G100 Ultimate (MT6789) |
 | Haptics | AWINIC AW8697 (AAC RichTap) |
-| Display | AMOLED, 712x1600, 480 dpi |
+| Display | AMOLED, 1080x2436, 144Hz, 480 dpi |
 | Partition layout | Virtual A/B with dynamic partitions |
 | Recovery image | `vendor_boot.img` |
 | Development branch | `twrp-16.0-tos16` |
