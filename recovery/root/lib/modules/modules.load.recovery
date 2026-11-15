@@ -222,3 +222,6 @@ tc_trancare.ko
 mtk-pwm.ko
 mtk_irtx_pwm.ko
 nfc_i2c.ko
+adaptive-ts.ko
+focaltech_ft3683g.ko
+gt9916_common.ko
