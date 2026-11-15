@@ -18,22 +18,34 @@ Usage:
 from __future__ import annotations
 
 import hashlib
+import re
 import sys
 from pathlib import Path
 
 # mtk_get_boot_mode: mov w8,#1 ; mov w9,#0x52 ; lsl ; tst ; b.eq
 #                    mov w0,#2 ; b ; mov w9,#0x304 ; tst ; b.eq
 #                    printk message ; bl ; mov w0,#1 ; b
-ORIG = bytes.fromhex(
+#
+# The printk call passes __LINE__ as `mov w2,#imm16`. That immediate changes
+# between module builds (0x11f in 16.3, 0x112 in 16.2) without any change in
+# logic, so it is matched as a wildcard instead of a fixed value. Everything
+# else in the block must still match exactly.
+_PRE = bytes.fromhex(
     "28008052490a80520821c31a1f01096a6000005440008052eaffff17"
     "896080521f01096ac0fcff5400000090000000910100009021000091"
-    "e22380520000009420008052dfffff17"
 )
-NEW = bytes.fromhex(
-    "28008052490a80520821c31a1f01096a6000005400008052eaffff17"
-    "896080521f01096ac0fcff5400000090000000910100009021000091"
-    "e22380520000009400008052dfffff17"
-)
+_POST = bytes.fromhex("0000009420008052dfffff17")
+_POST_NEW = bytes.fromhex("0000009400008052dfffff17")
+# mov w2,#imm16 : b0 low 5 bits = 2, b1 any, b2 in 0x80..0x9f, b3 = 0x52
+_MOV_W2 = rb"[\x02\x22\x42\x62\x82\xa2\xc2\xe2][\x00-\xff][\x80-\x9f]\x52"
+_PRE_NEW = _PRE[:20] + bytes.fromhex("00008052") + _PRE[24:]
+
+ORIG_RE = re.compile(re.escape(_PRE) + _MOV_W2 + re.escape(_POST), re.DOTALL)
+NEW_RE = re.compile(re.escape(_PRE_NEW) + _MOV_W2 + re.escape(_POST_NEW), re.DOTALL)
+
+# Offsets inside the matched block of the two `mov w0,#N` returns to zero out.
+_RET_OFFSETS = (20, len(_PRE) + 4 + 4)
+_ZERO_RET = bytes.fromhex("00008052")
 
 
 def sha256(data: bytes) -> str:
@@ -54,8 +66,10 @@ def main(argv: list[str]) -> int:
         print(f"error: {exc}")
         return 1
 
-    n_orig = data.count(ORIG)
-    n_new = data.count(NEW)
+    orig_matches = list(ORIG_RE.finditer(data))
+    new_matches = list(NEW_RE.finditer(data))
+    n_orig = len(orig_matches)
+    n_new = len(new_matches)
     if n_new == 1 and n_orig == 0:
         print(f"{path}: already patched")
         return 0
@@ -63,7 +77,11 @@ def main(argv: list[str]) -> int:
         if check:
             print(f"{path}: needs patch (boot-mode returns 2 and 1)")
             return 2
-        patched = data.replace(ORIG, NEW, 1)
+        start = orig_matches[0].start()
+        buf = bytearray(data)
+        for off in _RET_OFFSETS:
+            buf[start + off:start + off + 4] = _ZERO_RET
+        patched = bytes(buf)
         path.write_bytes(patched)
         print(f"patched {path}")
         print(f"  sha256 {sha256(data)} -> {sha256(patched)}")
@@ -79,3 +97,4 @@ def main(argv: list[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
+  
