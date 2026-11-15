@@ -1,0 +1,175 @@
+name: Build TWRP X6858
+
+# Taruh file ini di repo fork device tree: .github/workflows/build.yml
+# Jalankan manual dari tab Actions -> Build TWRP X6858 -> Run workflow.
+# Lunch target dan make target diambil dari AGENTS.md repo device.
+# device_path adalah asumsi (AGENTS.md hanya menyebut "device/infinix/").
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_repo:
+        description: Repo device tree
+        default: https://github.com/RR-pixel/twrp-device_infinix_Infinix-X6858
+      device_branch:
+        description: Branch device tree
+        default: twrp-16.0-tos16
+      device_path:
+        description: Folder tujuan device tree di source
+        default: device/infinix/Infinix-X6858
+      common_repo:
+        description: Repo common tree MT6789
+        default: https://github.com/RR-pixel/twrp-device_transsion_mt6789-common
+      common_branch:
+        description: Branch common tree
+        default: twrp-16.0-tos16
+      common_path:
+        description: Folder tujuan common tree (sesuai README dev)
+        default: device/transsion/mt6789-common
+      lunch_target:
+        description: Lunch target (sesuai AGENTS.md)
+        default: twrp_X6858
+      make_target:
+        description: Target build (vendorbootimage untuk vendor_boot.img)
+        default: vendorbootimage
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 345
+    env:
+      DEVICE_REPO: ${{ inputs.device_repo }}
+      DEVICE_BRANCH: ${{ inputs.device_branch }}
+      DEVICE_PATH: ${{ inputs.device_path }}
+      COMMON_REPO: ${{ inputs.common_repo }}
+      COMMON_BRANCH: ${{ inputs.common_branch }}
+      COMMON_PATH: ${{ inputs.common_path }}
+      LUNCH_TARGET: ${{ inputs.lunch_target }}
+      MAKE_TARGET: ${{ inputs.make_target }}
+      MANIFEST_URL: https://github.com/TWRP-Test/platform_manifest_twrp_aosp.git
+      MANIFEST_BRANCH: twrp-16.0
+      WORKDIR: /mnt/twrp
+      CCACHE_DIR: /mnt/ccache
+    steps:
+      - name: Siapkan disk, swap, dan folder kerja
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo swapoff -a || true
+          sudo rm -f /mnt/swapfile
+          sudo fallocate -l 12G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo mkdir -p "$WORKDIR" "$CCACHE_DIR"
+          sudo chown -R "$USER":"$USER" "$WORKDIR" "$CCACHE_DIR"
+          df -h / /mnt
+          free -h
+
+      - name: Pasang dependensi build
+        run: |
+          # Ubuntu 24.04 membatasi user namespace, ini bisa mengganggu build Android
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git-core gnupg flex bison build-essential zip unzip curl \
+            zlib1g-dev libc6-dev-i386 libncurses-dev x11proto-core-dev \
+            libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc \
+            fontconfig python3 rsync bc libssl-dev lz4 zstd cpio ccache
+          mkdir -p "$HOME/bin"
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo \
+            -o "$HOME/bin/repo"
+          chmod +x "$HOME/bin/repo"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          git config --global user.name "twrp-builder"
+          git config --global user.email "twrp-builder@users.noreply.github.com"
+          git config --global color.ui false
+
+      - name: Pulihkan cache ccache
+        uses: actions/cache@v4
+        with:
+          path: /mnt/ccache
+          key: ccache-x6858-${{ github.run_id }}
+          restore-keys: |
+            ccache-x6858-
+
+      - name: Sync source manifest TWRP-Test
+        working-directory: /mnt/twrp
+        run: |
+          repo init --depth=1 -u "$MANIFEST_URL" -b "$MANIFEST_BRANCH" < /dev/null
+          for i in 1 2 3; do
+            repo sync -c -j"$(nproc)" --force-sync --no-clone-bundle --no-tags \
+              && break
+            echo "repo sync gagal (percobaan $i), mengulang..."
+            sleep 30
+          done
+          test -d build/make || { echo "Sync gagal, source tidak lengkap"; exit 1; }
+
+      - name: Clone device tree dan common tree
+        working-directory: /mnt/twrp
+        run: |
+          rm -rf "$DEVICE_PATH" "$COMMON_PATH"
+          git clone --depth=1 -b "$DEVICE_BRANCH" "$DEVICE_REPO" "$DEVICE_PATH"
+          git clone --depth=1 -b "$COMMON_BRANCH" "$COMMON_REPO" "$COMMON_PATH"
+          echo "== Isi device tree =="
+          ls -la "$DEVICE_PATH"
+          echo "== Isi common tree =="
+          ls -la "$COMMON_PATH"
+
+      - name: Cek modul dan DTB
+        working-directory: /mnt/twrp
+        run: |
+          # Info saja, tidak menggagalkan build. Cocokkan dengan firmware 16.2.
+          MODDIR="$DEVICE_PATH/recovery/root/lib/modules"
+          echo "== vermagic modul (jumlah per nilai) =="
+          for f in "$MODDIR"/*.ko; do modinfo -F vermagic "$f"; done | sort | uniq -c
+          echo "== sha256 DTB dan modul touch =="
+          sha256sum "$DEVICE_PATH/prebuilt/dtb.img" || true
+          sha256sum "$MODDIR"/adaptive-ts.ko "$MODDIR"/focaltech_ft3683g.ko \
+            "$MODDIR"/gt9916_common.ko || true
+          echo "== entri modules.load.recovery yang filenya tidak ada =="
+          while read -r m; do
+            [ -n "$m" ] && [ ! -f "$MODDIR/$(basename "$m")" ] && echo "HILANG: $m"
+          done < "$MODDIR/modules.load.recovery" || true
+
+      - name: Build
+        working-directory: /mnt/twrp
+        run: |
+          set +e
+          set -o pipefail
+          export LC_ALL=C
+          export ALLOW_MISSING_DEPENDENCIES=true
+          export USE_CCACHE=1
+          export CCACHE_EXEC=/usr/bin/ccache
+          ccache -M 5G
+          source build/envsetup.sh
+          lunch "$LUNCH_TARGET" || { echo "lunch gagal, cek nama target"; exit 1; }
+          m "$MAKE_TARGET" 2>&1 | tee /mnt/build.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Kumpulkan hasil
+        if: success()
+        run: |
+          mkdir -p /mnt/artifacts
+          find /mnt/twrp/out/target/product -maxdepth 2 \
+            \( -name 'vendor_boot.img' -o -name 'recovery.img' -o -name 'boot.img' \) \
+            -exec cp -v {} /mnt/artifacts/ \;
+          cd /mnt/artifacts && sha256sum *.img | tee SHA256SUMS.txt
+
+      - name: Unggah image
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: twrp-x6858
+          path: |
+            /mnt/artifacts/*.img
+            /mnt/artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Unggah log build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /mnt/build.log
+          if-no-files-found: ignore
